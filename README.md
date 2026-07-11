@@ -1,40 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# 🅿️ ParkZone - Real-Time Smart Parking Management System
 
-## Getting Started
+**ParkZone** është një platformë "Full-Stack" e avancuar e ndërtuar me **Next.js**, e dizajnuar për të zgjidhur problemin e gjetjes dhe menaxhimit të vendparkimeve në kohë reale. Ky projekt është zhvilluar si pjesë e lëndës "Zhvillimi i Ueb-it në Anën e Klientit".
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+##  Karakteristikat Kryesore
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+###  Menaxhimi Live i Kapacitetit (Real-Time)
+Sistemi llogarit automatikisht vendet e lira në çdo sekondë duke analizuar rezervimet aktive në MongoDB. Sapo një rezervim skadon, vendi lirohet automatikisht në Ballinë pa pasur nevojë për rifreskim (Polling System).
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+###  Simulimi i Pagesave (Checkout System)
+Procesi i rezervimit përfshin një llogaritës inteligjent të çmimit (Math.ceil logic: çdo minutë shtesë llogaritet si orë e plotë) dhe një modal pagese të sigurt (simulim) me validim të kartelës bankare.
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+###  Siguria dhe Rolet
+- **Autentifikimi:** NextAuth.js me Credentials dhe **Google OAuth**.
+- **Middleware:** Mbrojtje e rrugëve (Routes) në nivel serveri.
+- **Admin Hub:** Panel kontrolli i plotë për menaxhimin e lokacioneve, klijentëve, veturave dhe mesazheve.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+##  Teknologjitë e Përdorura
 
-## Learn More
+- **Frontend:** React.js & Next.js (Pages Router)
+- **Stilizimi:** Tailwind CSS (Elite Dark/Blue Design - Responsive)
+- **Databaza:** MongoDB Atlas (Mongoose ODM)
+- **Validimi:** React Hook Form
+- **Testimi:** Jest & React Testing Library (5/5 teste të kaluara)
+- **State Management:** Context API & Custom Hooks (`useLocalStorage`)
+- **Data Fetching:** SSR (`getServerSideProps`), SSG, dhe ISR (`revalidate`)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+##  Struktura e Faqeve (12+ Faqe)
+1.  **Ballina (Home):** Prezantimi, Search Bar funksional dhe lokacionet live.
+2.  **Lokacionet (Products):** Listë e veçantë e të gjitha parkingjeve.
+3.  **Detajet e Produktit:** Faqe dinamike me `getStaticPaths` dhe rezervim live.
+4.  **Dashboard:** Paneli i klijentit për menaxhimin e rezervimeve aktive.
+5.  **Garazha (Vehicles):** CRUD i plotë për veturat e përdoruesit.
+6.  **Profili:** Menaxhimi i të dhënave personale dhe upload i fotos nga media.
+7.  **Admin Hub:** Menaxhim i 5 entiteteve (Parking, Bookings, Vehicles, Users, Messages).
+8.  **Favoritët:** Lokacionet e pëlqyera të ruajtura për çdo përdorues (Custom Hook).
+9.  **FAQ:** Pyetjet e shpeshta.
+10. **About:** Rreth projektit dhe misionit tonë.
+11. **Contact:** Formë kontakti me ruajtje direkte në MongoDB.
+12. **Terms & Conditions:** Rregullat e përdorimit të sistemit.
+13. **404 Page:** Faqja e personalizuar për gabimet e navigimit.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+##  Grupi Punues
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Projekti u realizua me bashkëpunimin e anëtarëve të grupit:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+*   **Art Preniqi**: Arkitektura e sistemit, Logjika "Live Capacity", Integrimi i NextAuth/OAuth, API Routes dhe CRUD.
+*   **Taulant Pefqeli**: UI/UX Design, Stilizimi me Tailwind CSS, Zhvillimi i Komponentëve (Navbar, Footer, Modals) dhe Faqet Informative.
+*   **Sali Musaj**: Testimi me Jest, Dokumentimi teknik (README), Menaxhimi i MongoDB Atlas dhe logjika e formularëve të validimit.
+
+---
+
+##  Instalimi dhe Ekzekutimi
+
+1. Klononi repozitorin:
+   ```bash
+   git clone [linku-i-repozitorit]
+##  Instalimi dhe Përdorimi
+1. Klononi repozitorin.
+2. Instaloni varësitë: `npm install`.
+3. Konfiguroni `.env.local` me 
+    MONGODB_URI
+    NEXTAUTH_SECRET
+    GOOGLE_CLIENT_ID
+    GOOGLE_CLIENT_SECRET.
+4. Nisni serverin: `npm run dev`.
+5. Për testim: `npm test`.
