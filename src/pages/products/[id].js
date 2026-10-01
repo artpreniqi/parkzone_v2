@@ -9,8 +9,10 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 export default function ProductDetails({ product: initialProduct }) {
   const router = useRouter();
   const { data: session } = useSession();
+  
+  // RREGULLIMI 1: Përdorimi i optional chaining (?.) që të mos rrëzohet gjatë build-it
   const [product, setProduct] = useState(initialProduct);
-  const [liveAvailable, setLiveAvailable] = useState(initialProduct.availableSlots);
+  const [liveAvailable, setLiveAvailable] = useState(initialProduct?.availableSlots || 0);
   const [vehicles, setVehicles] = useState([]);
   const [favorites, setFavorites] = useLocalStorage(`favorites_${session?.user?.id}`, []);
   
@@ -34,6 +36,7 @@ export default function ProductDetails({ product: initialProduct }) {
 
   // LLOGARITJA LIVE E CMIMIT
   useEffect(() => {
+    if (!initialProduct) return;
     if (bookingData.startDate && bookingData.endDate && bookingData.fromTime && bookingData.toTime) {
         const start = new Date(`${bookingData.startDate}T${bookingData.fromTime}`);
         const end = new Date(`${bookingData.endDate}T${bookingData.toTime}`);
@@ -44,15 +47,16 @@ export default function ProductDetails({ product: initialProduct }) {
         if (diffInHours > 0) {
             const roundedHours = Math.ceil(diffInHours);
             setDurationHours(roundedHours);
-            setCalculatedPrice(roundedHours * initialProduct.price);
+            setCalculatedPrice(roundedHours * (initialProduct?.price || 0));
         } else {
             setCalculatedPrice(0);
             setDurationHours(0);
         }
     }
-  }, [bookingData, initialProduct.price]);
+  }, [bookingData, initialProduct]);
 
   useEffect(() => {
+    if (!initialProduct?._id) return;
     const syncLive = async () => {
       try {
         const res = await axios.get("/api/capacity");
@@ -64,10 +68,11 @@ export default function ProductDetails({ product: initialProduct }) {
     syncLive();
     const interval = setInterval(syncLive, 2000);
     return () => clearInterval(interval);
-  }, [session, initialProduct._id]);
+  }, [session, initialProduct?._id]);
 
   const toggleFavorite = () => {
     if (!session) return alert("Kyçuni!");
+    if (!initialProduct) return;
     const isFavorite = favorites?.some(f => f._id === initialProduct._id);
     isFavorite ? setFavorites(favorites.filter(f => f._id !== initialProduct._id)) : setFavorites([...favorites, initialProduct]);
   };
@@ -85,6 +90,7 @@ export default function ProductDetails({ product: initialProduct }) {
 
   // KONTROLLI FINAL I REZERVIMIT DHE PAGESES
   const handleFinalBooking = async () => {
+    if (!initialProduct) return;
     // VALIDIMI I FUSHAVE TE KARTELES
     if (!cardData.number || cardData.number.length < 16) return alert("Shënoni numrin e saktë të kartelës (16 shifra)!");
     if (!cardData.expiry || cardData.expiry.length < 5) return alert("Shënoni datën e skadimit (MM/YY)!");
@@ -107,6 +113,15 @@ export default function ProductDetails({ product: initialProduct }) {
     }
   };
 
+  // RREGULLIMI 2: Kontrolli mbrojtës gjatë ngarkimit apo prerenderimit në Vercel
+  if (router.isFallback || !initialProduct) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-20 text-center text-black font-black uppercase tracking-tighter">
+        <p className="text-xl animate-pulse">Duke u ngarkuar të dhënat e parkimit...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 text-black font-black uppercase tracking-tighter">
       <Link href="/" className="text-blue-600 mb-6 inline-flex items-center text-[10px] tracking-widest italic text-black">← Ballina</Link>
@@ -124,7 +139,7 @@ export default function ProductDetails({ product: initialProduct }) {
             </div>
             <div className={`p-6 rounded-2xl border-2 mb-8 text-center transition-all ${liveAvailable > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                 <p className="text-[10px] text-gray-400 tracking-widest mb-1 italic">Kapaciteti Tani</p>
-                <p className={`text-4xl tracking-tighter ${liveAvailable > 0 ? 'text-green-700' : 'text-red-600 animate-pulse'}`}>{liveAvailable} / {initialProduct.totalSlots} LIRË</p>
+                <p className={`text-4xl tracking-tighter ${liveAvailable > 0 ? 'text-green-700' : 'text-red-600 animate-pulse'}`}>{liveAvailable} / {initialProduct.totalSlots} VENDE</p>
             </div>
             <p className="text-black text-sm italic font-bold leading-relaxed border-l-4 border-gray-100 pl-4">"{initialProduct.description}"</p>
           </div>
@@ -243,8 +258,14 @@ export async function getStaticPaths() {
     await dbConnect();
     const ProductModel = (await import("@/models/Product")).default;
     const res = await ProductModel.find({}, { _id: 1 });
-    return { paths: res.map(p => ({ params: { id: p._id.toString() } })), fallback: true };
-  } catch (e) { return { paths: [], fallback: true }; }
+    return { 
+      paths: res.map(p => ({ params: { id: p._id.toString() } })), 
+      // RREGULLIMI 3: 'blocking' pret ngarkimin e të dhënave në server para se të renditë faqen
+      fallback: "blocking" 
+    };
+  } catch (e) { 
+    return { paths: [], fallback: "blocking" }; 
+  }
 }
 
 export async function getStaticProps({ params }) {
@@ -252,6 +273,9 @@ export async function getStaticProps({ params }) {
     await dbConnect();
     const ProductModel = (await import("@/models/Product")).default;
     const res = await ProductModel.findById(params.id);
+    if (!res) return { notFound: true };
     return { props: { product: JSON.parse(JSON.stringify(res)) }, revalidate: 1 };
-  } catch (error) { return { notFound: true }; }
+  } catch (error) { 
+    return { notFound: true }; 
+  }
 }
